@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rizz Court</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0D0D14;
+    --panel: #17141F;
+    --panel-2: #1E1A2A;
+    --verdict: #FF2E88;
+    --acquit: #CCFF3D;
+    --gavel: #7C4DFF;
+    --text: #F5F0FF;
+    --muted: #8B85A0;
+    --line: #2A2536;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(124,77,255,0.12), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255,46,136,0.10), transparent 45%);
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--gavel);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(38px, 9vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  h1 span {
+    color: var(--verdict);
+  }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 15px;
+    margin-top: 10px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin: 28px 0 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 8px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--verdict);
+  }
+
+  .tab:hover:not(.active) {
+    color: var(--text);
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+  }
+
+  .case-no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 96px;
+    background: var(--void);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    border-color: var(--gavel);
+  }
+
+  textarea::placeholder {
+    color: var(--muted);
+  }
+
+  .hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--verdict);
+    color: var(--void);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: transform 0.1s, filter 0.2s;
+  }
+
+  .submit-btn:hover {
+    filter: brightness(1.1);
+  }
+
+  .submit-btn:active {
+    transform: scale(0.98);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 30px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--gavel);
+  }
+
+  .loading.show { display: block; }
+
+  .loading .dots::after {
+    content: '';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+    100% { content: ''; }
+  }
+
+  .result {
+    display: none;
+    margin-top: 22px;
+  }
+
+  .result.show { display: block; }
+
+  .stamp-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .stamp {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 22px;
+    color: var(--verdict);
+    border: 4px solid var(--verdict);
+    border-radius: 8px;
+    padding: 8px 20px;
+    transform: rotate(-6deg) scale(0);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    animation: stamp-slam 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
+  }
+
+  @keyframes stamp-slam {
+    0% { transform: rotate(-6deg) scale(2.5); opacity: 0; }
+    60% { transform: rotate(-6deg) scale(0.9); opacity: 1; }
+    100% { transform: rotate(-6deg) scale(1); opacity: 1; }
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gavel);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .verdict-text {
+    font-size: 17px;
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+
+  .sentence-box {
+    background: var(--panel-2);
+    border-left: 3px solid var(--acquit);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+
+  .sentence-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--acquit);
+    font-weight: 500;
+  }
+
+  .paywall {
+    background: var(--panel-2);
+    border: 1px dashed var(--gavel);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 22px;
+  }
+
+  .paywall-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .paywall-copy {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .unlock-btn {
+    display: inline-block;
+    background: var(--gavel);
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    padding: 13px 28px;
+    border-radius: 10px;
+    transition: filter 0.2s;
+  }
+
+  .unlock-btn:hover {
+    filter: brightness(1.15);
+  }
+
+  .again-btn {
+    display: block;
+    width: 100%;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .again-btn:hover {
+    border-color: var(--muted);
+    color: var(--text);
+  }
+
+  .lines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .line-item {
+    background: var(--panel-2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .copy-btn {
+    background: none;
+    border: none;
+    color: var(--gavel);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 4px 0;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    color: var(--acquit);
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 34px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .error {
+    color: var(--verdict);
+    font-size: 13px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .error.show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">⚖ Now In Session</div>
+    <h1>RIZZ<br><span>COURT</span></h1>
+    <p class="tagline">Justice for your opening lines. Submit evidence, get a verdict.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="roast">Roast My Line</button>
+    <button class="tab" data-tab="generate">Give Me A Line</button>
+  </div>
+
+  <!-- ROAST TAB -->
+  <div class="card" id="roast-panel">
+    <div class="case-no" id="roast-case-no">CASE #0001 — RIZZ COURT v. YOU</div>
+    <p class="hint">Paste the line you sent (or want to send). The Judge will read it into the record.</p>
+    <textarea id="roast-input" placeholder="e.g. 'hey' or your actual opener..." maxlength="300"></textarea>
+    <button class="submit-btn" id="roast-submit">SUBMIT EVIDENCE</button>
+    <div class="error" id="roast-error"></div>
+
+    <div class="loading" id="roast-loading"><span class="dots">The Judge is reviewing the evidence</span></div>
+
+    <div class="result" id="roast-result">
+      <div class="stamp-wrap"><div class="stamp" id="roast-stamp">GUILTY</div></div>
+      <div class="section-label">The Verdict</div>
+      <div class="verdict-text" id="roast-verdict"></div>
+      <div class="sentence-box">
+        <div class="section-label" style="color: var(--acquit);">Sentence Reduced To</div>
+        <div class="sentence-text" id="roast-sentence"></div>
+      </div>
+
+      <div class="paywall" id="roast-paywall">
+        <div class="paywall-title">Want to appeal?</div>
+        <p class="paywall-copy">Unlock 3 more rewrites so you've got backups when this one doesn't land.</p>
+        <a href="#" class="unlock-btn" id="roast-unlock-link" target="_blank" rel="noopener">Appeal for $2.99</a>
+      </div>
+
+      <button class="again-btn" id="roast-again">Submit another case</button>
+    </div>
+  </div>
+
+  <!-- GENERATE TAB -->
+  <div class="card" id="generate-panel" style="display:none;">
+    <div class="case-no">CASE #0002 — REQUEST FOR AMMUNITION</div>
+    <p class="hint">No evidence of your own? The Judge will issue you a line. Optional: give a little context.</p>
+    <textarea id="generate-input" placeholder="optional: what are they into / what's the vibe..." maxlength="200"></textarea>
+    <button class="submit-btn" id="generate-submit">REQUEST A LINE</button>
+    <div class="error" id="generate-error"></div>
+
+    <div class="loading" id="generate-loading"><span class="dots">The Judge is drafting a ruling</span></div>
+
+    <div class="result" id="generate-result">
+      <div class="stamp-wrap"><div class="stamp" id="generate-stamp" style="color:var(--acquit); border-color:var(--acquit);">ISSUED</div></div>
+      <div class="section-label">Exhibit A</div>
+      <div class="lines-list" id="generate-lines"></div>
+
+      <div class="paywall" id="generate-paywall">
+        <div class="paywall-title">Need more ammo?</div>
+        <p class="paywall-copy">Unlock 5 more lines, sorted by how unhinged you're feeling.</p>
+        <a href="#" class="unlock-btn" id="generate-unlock-link" target="_blank" rel="noopener">Unlock for $2.99</a>
+      </div>
+
+      <button class="again-btn" id="generate-again">Request another case</button>
+    </div>
+  </div>
+
+  <footer>RIZZ COURT IS AN AI BOT. ALL VERDICTS ARE FINAL AND FOR ENTERTAINMENT ONLY.</footer>
+</div>
+
+<script>
+  // ====== CONFIG ======
+  // TODO: Replace with your real Square Payment Link before sharing.
+  const SQUARE_PAYMENT_LINK = "https://square.link/u/Qo7nmuQs";
+
+  document.getElementById('roast-unlock-link').href = SQUARE_PAYMENT_LINK;
+  document.getElementById('generate-unlock-link').href = SQUARE_PAYMENT_LINK;
+
+  // ====== TAB SWITCHING ======
+  const tabs = document.querySelectorAll('.tab');
+  const roastPanel = document.getElementById('roast-panel');
+  const generatePanel = document.getElementById('generate-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.dataset.tab === 'roast') {
+        roastPanel.style.display = 'block';
+        generatePanel.style.display = 'none';
+      } else {
+        roastPanel.style.display = 'none';
+        generatePanel.style.display = 'block';
+      }
+    });
+  });
+
+  let caseCounter = 1;
+
+  const JUDGE_PERSONA = `You are "The Judge" of RIZZ COURT — a chaotic, hilarious AI persona who roasts people's dating/flirting opening lines with courtroom-themed humor. You are savage but never genuinely cruel, never insult protected characteristics, body, race, etc. — you roast the LINE, not the person's worth. Think: a funny group chat friend crossed with a stand-up comedian doing a bit as a judge. Keep it punchy, meme-able, PG-13. Never use slurs or genuinely mean-spirited insults. Output ONLY valid JSON, no markdown fences, no preamble.`;
+
+  async function callClaude(systemPrompt, userPrompt) {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }]
+      })
+    });
+    if (!response.ok) throw new Error("API request failed");
+    const data = await response.json();
+    const textBlock = data.content.find(b => b.type === "text");
+    if (!textBlock) throw new Error("No text in response");
+    let cleaned = textBlock.text.trim().replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+    return JSON.parse(cleaned);
+  }
+
+  // ====== ROAST FLOW ======
+  const roastInput = document.getElementById('roast-input');
+  const roastSubmit = document.getElementById('roast-submit');
+  const roastLoading = document.getElementById('roast-loading');
+  const roastResult = document.getElementById('roast-result');
+  const roastError = document.getElementById('roast-error');
+  const roastCaseNo = document.getElementById('roast-case-no');
+
+  roastSubmit.addEventListener('click', async () => {
+    const line = roastInput.value.trim();
+    roastError.classList.remove('show');
+    if (!line) {
+      roastError.textContent = "The court requires evidence. Paste your line.";
+      roastError.classList.add('show');
+      return;
+    }
+
+    roastSubmit.disabled = true;
+    roastResult.classList.remove('show');
+    roastLoading.classList.add('show');
+
+    try {
+      const prompt = `Someone submitted this opening/pickup line for you to roast: "${line}"
+
+Return JSON with exactly these fields:
+{
+  "stamp": "a 1-2 word courtroom stamp verdict in all caps, e.g. GUILTY, REJECTED, DISMISSED, HELD IN CONTEMPT (pick something funny and fitting)",
+  "verdict": "2-4 sentences roasting this specific line in The Judge's chaotic courtroom voice, referencing the actual line",
+  "sentence": "a funnier, better rewritten version of the line, same general intent but way more charming/funny — 1-2 sentences max"
+}`;
+      const result = await callClaude(JUDGE_PERSONA, prompt);
+
+      document.getElementById('roast-stamp').textContent = result.stamp || "GUILTY";
+      document.getElementById('roast-verdict').textContent = result.verdict;
+      document.getElementById('roast-sentence').textContent = result.sentence;
+
+      // restart stamp animation
+      const stampEl = document.getElementById('roast-stamp');
+      stampEl.style.animation = 'none';
+      void stampEl.offsetWidth;
+      stampEl.style.animation = '';
+
+      roastLoading.classList.remove('show');
+      roastResult.classList.add('show');
+      caseCounter++;
+      roastCaseNo.textContent = `CASE #${String(caseCounter).padStart(4,'0')} — RIZZ COURT v. YOU`;
+    } catch (e) {
+      roastLoading.classList.remove('show');
+      roastError.textContent = "The Judge's chambers are backed up. Try again in a moment.";
+      roastError.classList.add('show');
+    } finally {
+      roastSubmit.disabled = false;
+    }
+  });
+
+  document.getElementById('roast-again').addEventListener('click', () => {
+    roastInput.value = '';
+    roastResult.classList.remove('show');
+    roastInput.focus();
+  });
+
+  // ====== GENERATE FLOW ======
+  const generateInput = document.getElementById('generate-input');
+  const generateSubmit = document.getElementById('generate-submit');
+  const generateLoading = document.getElementById('generate-loading');
+  const generateResult = document.getElementById('generate-result');
+  const generateError = document.getElementById('generate-error');
+
+  generateSubmit.addEventListener('click', async () => {
+    const context = generateInput.value.trim();
+    generateError.classList.remove('show');
+
+    generateSubmit.disabled = true;
+    generateResult.classList.remove('show');
+    generateLoading.classList.add('show');
+
+    try {
+      const prompt = `Generate ONE unhinged, funny, charming opening line for someone to send on a dating app or in a DM.
+${context ? `Context provided: "${context}"` : "No context provided — make it generically chaotic and funny, work for almost any situation."}
+
+Return JSON with exactly this field:
+{
+  "line": "the single opening line, 1-2 sentences max, funny and a little chaotic but not creepy or explicit"
+}`;
+      const result = await callClaude(JUDGE_PERSONA, prompt);
+
+      const linesList = document.getElementById('generate-lines');
+      linesList.innerHTML = '';
+      const item = document.createElement('div');
+      item.className = 'line-item';
+      const textSpan = document.createElement('span');
+      textSpan.textContent = result.line;
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.textContent = 'COPY';
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(result.line).then(() => {
+          copyBtn.textContent = 'COPIED';
+          setTimeout(() => { copyBtn.textContent = 'COPY'; }, 1500);
+        });
+      });
+      item.appendChild(textSpan);
+      item.appendChild(copyBtn);
+      linesList.appendChild(item);
+
+      const stampEl = document.getElementById('generate-stamp');
+      stampEl.style.animation = 'none';
+      void stampEl.offsetWidth;
+      stampEl.style.animation = '';
+
+      generateLoading.classList.remove('show');
+      generateResult.classList.add('show');
+    } catch (e) {
+      generateLoading.classList.remove('show');
+      generateError.textContent = "The Judge's chambers are backed up. Try again in a moment.";
+      generateError.classList.add('show');
+    } finally {
+      generateSubmit.disabled = false;
+    }
+  });
+
+  document.getElementById('generate-again').addEventListener('click', () => {
+    generateInput.value = '';
+    generateResult.classList.remove('show');
+    generateInput.focus();
+  });
+</script>
+</body>
+</html>
