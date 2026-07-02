@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const { line } = req.body;
+    const { system, prompt } = req.body;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -10,14 +10,10 @@ export default async function handler(req, res) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 300,
-        messages: [
-          {
-            role: "user",
-            content: `You are the Judge of Rizz Court. Roast and improve this pickup line:\n${line}`
-          }
-        ]
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: system,
+        messages: [{ role: "user", content: prompt }]
       }),
     });
 
@@ -26,16 +22,14 @@ export default async function handler(req, res) {
     if (!response.ok) {
       console.error("Anthropic API error:", response.status, JSON.stringify(data));
       return res.status(response.status).json({
-        result: `Judge malfunctioned: ${data.error?.message || "unknown error"}`
+        error: data.error?.message || "unknown error"
       });
     }
 
-    res.status(200).json({
-      result: data.content?.[0]?.text || "Judge malfunctioned"
-    });
+    res.status(200).json(data);
 
   } catch (err) {
     console.error("judge.js crashed:", err);
-    res.status(500).json({ result: "Judge crashed: " + err.message });
+    res.status(500).json({ error: "Judge crashed: " + err.message });
   }
 }
