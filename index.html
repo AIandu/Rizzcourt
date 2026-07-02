@@ -484,15 +484,10 @@
   const JUDGE_PERSONA = `You are "The Judge" of RIZZ COURT — a chaotic, hilarious AI persona who roasts people's dating/flirting opening lines with courtroom-themed humor. You are savage but never genuinely cruel, never insult protected characteristics, body, race, etc. — you roast the LINE, not the person's worth. Think: a funny group chat friend crossed with a stand-up comedian doing a bit as a judge. Keep it punchy, meme-able, PG-13. Never use slurs or genuinely mean-spirited insults. Output ONLY valid JSON, no markdown fences, no preamble.`;
 
   async function callClaude(systemPrompt, userPrompt) {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("/api/judge", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }]
-      })
+      body: JSON.stringify({ system: systemPrompt, prompt: userPrompt })
     });
     if (!response.ok) throw new Error("API request failed");
     const data = await response.json();
