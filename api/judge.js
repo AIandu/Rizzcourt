@@ -1,28 +1,41 @@
 export default async function handler(req, res) {
-  const { line } = req.body;
+  try {
+    const { line } = req.body;
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 300,
-      messages: [
-        {
-          role: "user",
-          content: `You are the Judge of Rizz Court. Roast and improve this pickup line:\n${line}`
-        }
-      ]
-    })
-  });
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 300,
+        messages: [
+          {
+            role: "user",
+            content: `You are the Judge of Rizz Court. Roast and improve this pickup line:\n${line}`
+          }
+        ]
+      }),
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  res.status(200).json({
-    result: data.content?.[0]?.text || "Judge malfunctioned"
-  });
+    if (!response.ok) {
+      console.error("Anthropic API error:", response.status, JSON.stringify(data));
+      return res.status(response.status).json({
+        result: `Judge malfunctioned: ${data.error?.message || "unknown error"}`
+      });
+    }
+
+    res.status(200).json({
+      result: data.content?.[0]?.text || "Judge malfunctioned"
+    });
+
+  } catch (err) {
+    console.error("judge.js crashed:", err);
+    res.status(500).json({ result: "Judge crashed: " + err.message });
+  }
 }
